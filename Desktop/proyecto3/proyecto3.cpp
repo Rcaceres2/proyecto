@@ -185,11 +185,114 @@ void mostrarPublicaciones() {
     }
 }
 
-void buscarPorTitulo() {}
+void buscarPorTitulo() {
+    if (cantidad == 0) {
+        cout << "\nNo hay publicaciones en el catalogo.\n";
+        return;
+    }
+    string termino;
+    cout << "\nIngrese el titulo a buscar: ";
+    cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
+    getline(cin, termino);
 
-void eliminarPublicacion() {}
+    if (termino.empty()) {
+        cout << "No ingreso ningun titulo para buscar\n";
+        return;
+    }
+    transform(termino.begin(), termino.end(), termino.begin(), ::tolower);
 
-void estadisticas() {}
+    bool encontrado = false;
+    cout << "\n=== RESULTADOS ===";
+    for (int i = 0; i < cantidad; i++) {
+        string titulo = catalogo[i]->getTitulo();
+        string tituloLower = titulo;
+        transform(tituloLower.begin(), tituloLower.end(), tituloLower.begin(), ::tolower);
+        if (tituloLower.find(termino) != string::npos) {
+            if (!encontrado) {
+                cout << "\nPublicaciones encontradas:\n";
+            }
+            encontrado = true;
+            cout << "\n#"<< (i+1) << " - Tipo: " << catalogo[i]->getTipo() 
+                 << "\nTitulo: " << titulo << "\n";
+            catalogo[i]->mostrarInfo();
+        }
+    }
+    if (!encontrado) {
+        cout << "\nNo se encontraron publicaciones con: '" << termino << "'\n";
+    }
+}
+
+void eliminarPublicacion() {
+    if(cantidad == 0) {
+        cout << "No hay publicaciones\n";
+        return;
+    }
+    mostrarPublicaciones();
+    int indice;
+    cout << "\nIndice a eliminar (0=cancelar): ";
+    if(!(cin >> indice) || indice < 0 || indice > cantidad) {
+        cout << "Indice invalido\n";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        return;
+    }
+    if(indice == 0) {
+        cout << "No se elimino\n"; return;
+    }
+    cout << "¿Eliminar '" << catalogo[indice-1]->getTitulo() << "'? (s/n): ";
+    char op; cin >> op;
+    cin.ignore();
+
+    if(tolower(op) == 's') {
+        delete catalogo[indice-1];
+        for(int i = indice-1; i < cantidad-1; i++) {
+            catalogo[i] = catalogo[i+1];
+        }
+        cantidad--;
+        cout << "Eliminado\n";
+        if(cantidad > 0 && cantidad <= capacidad/4) {
+            redimensionar(capacidad/2);
+        }
+    }
+    else {
+        cout << "No se elimino\n";
+    }
+}
+
+void estadisticas() {
+    if(cantidad == 0) {
+        cout << "No hay estadisticas\n"; return;
+    }
+    int libros = 0, revistas = 0, periodicos = 0;
+    int minAnio = catalogo[0]->getAnioPublicacion();
+    int maxAnio = catalogo[0]->getAnioPublicacion();
+    string viejo = catalogo[0]->getTitulo();
+    string nuevo = catalogo[0]->getTitulo();
+    
+    for(int i = 0; i < cantidad; i++) {
+        string tipo = catalogo[i]->getTipo();
+        if(tipo == "Libro") libros++;
+        else if(tipo == "Revista") revistas++;
+        else if(tipo == "Periodico") periodicos++; 
+        
+        int anio = catalogo[i]->getAnioPublicacion();
+        if(anio < minAnio) {
+            minAnio = anio;
+            viejo = catalogo[i]->getTitulo();
+        }
+        if(anio > maxAnio) {
+            maxAnio = anio;
+            nuevo = catalogo[i]->getTitulo();
+        }
+    }
+    cout << "\n=== ESTADISTICAS ===\n";
+    cout << "Total: " << cantidad << endl;
+    cout << "Libros: " << libros << endl;
+    cout << "Revistas: " << revistas << endl;
+    cout << "Periodicos: " << periodicos << endl;
+    cout << "\nMas antiguo: " << viejo << " (" << minAnio << ")\n";
+    cout << "Mas reciente: " << nuevo << " (" << maxAnio << ")\n";
+}
 
 int main() {
     catalogo = new Publicacion*[capacidad];
