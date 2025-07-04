@@ -71,12 +71,118 @@ void redimensionar(int nuevaCapacidad) {
     capacidad = nuevaCapacidad;
 }
 
+void agregarPublicacionCatalogo(Publicacion* p) {
+    if(cantidad >= capacidad) {
+        redimensionar(capacidad * 2);
+    }
+    catalogo[cantidad++] = p;
+}
+
+void liberarMemoria() {
+    for(int i = 0; i < cantidad; i++) {
+        delete catalogo[i];
+    }
+    delete[] catalogo;
+}
+
 void agregarPublicacion() {
-    int opcion;
-    cin >> opcion; cin.ignore();
-};
+    int tipo, anio, paginas, edicion;
+    string titulo, autor, fecha, ciudad;
+    
+    do {
+        cout << "=== TIPOS DE PUBLICACION ===\n";
+        cout << "1. Libro\n";
+        cout << "2. Revista\n";
+        cout << "3. Periodico\n";
+        cout << "4. Volver al menu\n";
+        cout << "Opcion: "; cin >> tipo;
+        cin.ignore();
+        if (tipo == 4) return;
+        if (tipo < 1 || tipo > 3) {
+            cout << "Opcion no valida\n"; 
+            continue;
+        }
+        do {
+            cout << "\nTitulo: "; getline(cin, titulo);
+            if (titulo.empty()) cout << "El titulo no puede estar vacio\n";
+        } while (titulo.empty());
+        do {
+            cout << "Autor: "; getline(cin, autor);
+            if (autor.empty()) cout << "El autor no puede estar vacio\n";
+        } while (autor.empty());
+        while (true) {
+            cout << "Anio (1500-2025): ";
+            if (!(cin >> anio) || anio < 1500 || anio > 2025) {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "Anio invalido. Debe ser entre 1500 y 2025\n";
+                continue;
+            }
+            break;
+        }
+        cin.ignore();
+        switch(tipo) {
+            case 1: {
+                while (true) {
+                    cout << "Numero de paginas: ";
+                    if (!(cin >> paginas) || paginas <= 0) {
+                        cin.clear();
+                        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                        cout << "Debe ser un numero mayor que 0\n";
+                        continue;
+                    }
+                    break;
+                }
+                cin.ignore();
+                if (cantidad >= capacidad) redimensionar(capacidad * 2);
+                catalogo[cantidad++] = new Libro(titulo, autor, anio, paginas); 
+                break;
+            }
+            case 2: {
+                while (true) {
+                    cout << "Numero de edicion: ";
+                    if (!(cin >> edicion) || edicion <= 0) {
+                        cin.clear();
+                        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                        cout << "Debe ser un numero mayor que 0\n";
+                        continue;
+                    }
+                    break;
+                }
+                cin.ignore();
+                if (cantidad >= capacidad) redimensionar(capacidad * 2);
+                catalogo[cantidad++] = new Revista(titulo, autor, anio, edicion); 
+                break;
+            }
+            case 3: {
+                do {
+                    cout << "Fecha (DD/MM/AAAA): "; 
+                    getline(cin, fecha);
+                    if (fecha.empty()) cout << "La fecha no puede estar vacia\n";
+                } while (fecha.empty());
+                do {
+                    cout << "Ciudad: "; 
+                    getline(cin, ciudad);
+                    if (ciudad.empty()) cout << "La ciudad no puede estar vacia\n";
+                } while (ciudad.empty());
+                if (cantidad >= capacidad) redimensionar(capacidad * 2);
+                catalogo[cantidad++] = new Periodico(titulo, autor, anio, fecha, ciudad);
+                break;
+            }
+        }
+    } while (true);
+}
 
 void mostrarPublicaciones() {
+    if(cantidad == 0) {
+        cout << "No hay publicaciones\n";
+        return;
+    }
+    cout << "\n=== CATALOGO (" << cantidad << "/" << capacidad << ") ===\n";
+    for(int i = 0; i < cantidad; i++) {
+        cout << "\n#" << i+1 << " [" << catalogo[i]->getTipo() << "]\n";
+        catalogo[i]->mostrarInfo();
+    }
 }
 
 void buscarPorTitulo() {}
@@ -115,6 +221,7 @@ int main() {
             default: cout << "Opcion no valida\n";
         }
     } while(opcion != 6);
+    liberarMemoria();
     cout << "Programa terminado\n";
     return 0;
 }
