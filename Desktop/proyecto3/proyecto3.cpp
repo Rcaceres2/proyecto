@@ -1,42 +1,75 @@
 #include <iostream>
 #include <string>
+#include <limits>
+#include <algorithm>
+#include <cctype>
 using namespace std;
 
 class Publicacion {
     private:
-        string titulo;
-        string autor;
+        string titulo, autor;
         int anioPublicacion;
     public:
         Publicacion(string t, string a, int anio) : titulo(t), autor(a), anioPublicacion(anio) {}
-        string getTitulo() const { return titulo; }
-        string getAutor() const { return autor; }
-        int getAnioPublicacion() const { return anioPublicacion; }
-        virtual void mostrarInformacion() const {
-            cout << "Titulo: " << titulo << ", Autor: " << autor << ", Anio: " << anioPublicacion << endl;   
+        virtual ~Publicacion() {}
+        string getTitulo() { return titulo; }
+        string getAutor() { return autor; }
+        int getAnioPublicacion() { return anioPublicacion; }
+        virtual void mostrarInfo() {
+            cout << "Titulo: " << titulo << " Autor: " << autor << " Año: " << anioPublicacion << endl;
         }
-        virtual string getTipo() const = 0;
+        virtual string getTipo() = 0;
 };
 
 class Libro : public Publicacion {
-    int numPaginas;
+    private:
+        int numPaginas;
     public:
         Libro(string t, string a, int anio, int paginas) : Publicacion(t, a, anio), numPaginas(paginas) {}
-        void mostrarInformacion() const override {
-            Publicacion::mostrarInformacion();
-            cout << "Numero de Paginas: " << numPaginas << endl;
-        }
-        string getTipo() const override { return "Libro"; }
+        void mostrarInfo() override {
+            Publicacion::mostrarInfo();
+            cout << "Paginas: " << numPaginas << endl;
+        }        
+        string getTipo() override { return "Libro"; }
 };
 
 class Revista : public Publicacion {
-    int numeroEdicion;
+    private:
+        int numeroEdicion;
+    public:
+        Revista(string t, string a, int anio, int edicion) : Publicacion(t, a, anio), numeroEdicion(edicion) {}
+        void mostrarInfo() override {
+            Publicacion::mostrarInfo();
+            cout << "Edicion: " << numeroEdicion << endl;
+        }
+        string getTipo() override { return "Revista"; }
 };
 
 class Periodico : public Publicacion {
-    string fechaPublicacion;
-    string ciudad;                         
+    private:
+        string fechaPublicacion, ciudad;
+    public:
+        Periodico(string t, string a, int anio, string fecha, string ciudad) : Publicacion(t, a, anio), fechaPublicacion(fecha), ciudad(ciudad) {}
+        void mostrarInfo() override {
+            Publicacion::mostrarInfo();
+            cout << "Fecha: " << fechaPublicacion << "Ciudad: " << ciudad << endl;
+        }
+        string getTipo() override { return "Periodico"; }
 };
+
+Publicacion** catalogo = nullptr;
+int capacidad = 5; 
+int cantidad = 0;   
+
+void redimensionar(int nuevaCapacidad) {
+    Publicacion** nuevo = new Publicacion*[nuevaCapacidad];
+    for(int i = 0; i < cantidad; i++) {
+        nuevo[i] = catalogo[i];
+    }
+    delete[] catalogo;
+    catalogo = nuevo;
+    capacidad = nuevaCapacidad;
+}
 
 void agregarPublicacion() {
     int opcion;
@@ -52,27 +85,36 @@ void eliminarPublicacion() {}
 
 void estadisticas() {}
 
-int main(){
+int main() {
+    catalogo = new Publicacion*[capacidad];
+    
     int opcion;
     do {
-        cout << "1. Agregar nueva Publicacion\n";
-        cout << "2. Mostrar todas las Publicaciones\n";
-        cout << "3. Buscar publicacion por titulo\n";
-        cout << "4. Eliminar Publicacion\n";
-        cout << "5. Mostrar estadisticas\n";
-        cout << "6. Salir del programa\n";
-        cin >> opcion;
-        cin.ignore();
-        switch (opcion) {
+        cout << "\n=== MENU PRINCIPAL ===\n"
+             << "1. Agregar publicacion\n"
+             << "2. Mostrar publicaciones\n"
+             << "3. Buscar por titulo\n"
+             << "4. Eliminar publicacion\n"
+             << "5. Ver estadisticas\n"
+             << "6. Salir\n"
+             << "Opcion: ";
+
+        if(!(cin >> opcion)) {
+            cout << "Opcion invalida\n";
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            continue;
+        }
+        switch(opcion) {
             case 1: agregarPublicacion(); break;
             case 2: mostrarPublicaciones(); break;
             case 3: buscarPorTitulo(); break;
             case 4: eliminarPublicacion(); break;
             case 5: estadisticas(); break;
-            case 6: cout << "Saliendo" << endl; break;
-            default: cout << "Intente de nuevo." << endl;
+            case 6: break;
+            default: cout << "Opcion no valida\n";
         }
-    }
-    while (opcion != 6);
+    } while(opcion != 6);
+    cout << "Programa terminado\n";
     return 0;
 }
